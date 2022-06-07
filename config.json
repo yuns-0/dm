@@ -1,0 +1,15 @@
+{
+    "instagram_settings": {
+        "username": "alltesting.0",
+        "password": "201808@TECHno",
+        "text_message": "Hi Developed by CryonicX."
+    },
+
+    "script_settings": {
+        "license": "a",
+        "use_proxy": false,
+        "proxy_type": "https",
+        "threading": 10,
+        "message_amount": 1
+    }
+}
