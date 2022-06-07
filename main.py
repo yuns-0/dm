@@ -2,14 +2,15 @@ import os, json, random, threading, requests, time, instagrapi, traceback, os, p
 from tabnanny import check
 from instagrapi import Client
 from bs4 import BeautifulSoup
-
+import asyncio
+from proxybroker import Broker
 
 
 __PROGRAMID__ = "c2JedU7LcPNfkW8H9yPVAFjTuPxeJh9"
 __VERSION__ = "1.1"
 
 config = json.loads(open("./config.json", "r", encoding="utf-8").read())
-proxies = open("./proxies.txt", "+r", encoding="utf-8").read().splitlines()
+
 
 class color:
     GREEN = "\033[92m"
@@ -19,6 +20,32 @@ class color:
     BLUE = '\033[96m'
 
 
+
+
+
+
+async def save(proxies, filename):
+    """Save proxies to a file."""
+    with open(filename, 'a') as f:
+        while True:
+            proxy = await proxies.get()
+            if proxy is None:
+                break
+            row = '%s:%d\n' % (proxy.host, proxy.port)
+            try:
+                f.write(row)
+            except:
+                pass
+
+
+def get_proxies():
+    print("get proxies")
+    proxies = asyncio.Queue()
+    broker = Broker(proxies)
+    tasks = asyncio.gather(broker.find(types=['HTTPS'], limit=10),
+                           save(proxies, filename='proxies.txt'))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(tasks)
 
 
 def user_handler():
@@ -67,11 +94,17 @@ def start(thread):
         names = name_handler()
                     
         for id, user_name in enumerate(user_handler()):
-            time.sleep(30)
-            if (id+1)%5==0:
-                time.sleep(120)
+            ts = random.randint(35,50)
+            print(f"please wait {ts}s .....")
+            time.sleep(ts)
+            if (id+1)%4==0:
+                get_proxies()
+                ts = random.randint(60,180)
+                print(f"please wait {ts}s .....")
+                time.sleep(ts)
             pp = None
-            while pp is None and config["script_settings"]["use_proxy"]:
+            proxies = open("./proxies.txt", "+r", encoding="utf-8").read().splitlines()
+            while pp is None:
                 try:
                     prox = {"http": f"http://{random.choice(proxies)}", "https": f"{config['script_settings']['proxy_type']}://{random.choice(proxies)}"}
                     a = requests.get("http://ip-api.com/json/", proxies=prox, timeout=7, verify=False)
@@ -98,7 +131,7 @@ def start(thread):
                     name = names[id] 
                     if name == "Hey":
                         name = user_name
-                    print(user_name,name)
+                    print(f"Start send to {color.YELLOW}@{user_name} {color.RESET_ALL}")
                     text_message =  f"""Hey {name},We do brand deals with different companies like Tinder, Bumble, etc. Are you interested in doing paid promos?"""
                     mT = threading.Thread(target=send_dm, args=(config["instagram_settings"]["username"],config["instagram_settings"]["password"], None, user_name, text_message,config["script_settings"]["message_amount"],id+1))
                     #send_dm(config["instagram_settings"]["username"],config["instagram_settings"]["password"], random.choice(working_proxies), user_name, config["instagram_settings"]["text_message"])
@@ -137,6 +170,7 @@ if __name__ == "__main__":
         input("....")
 
         try:
+            get_proxies()
             start(config["script_settings"]["threading"])
             input("....")
             
