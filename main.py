@@ -98,7 +98,6 @@ def start(thread):
             print(f"please wait {ts}s .....")
             time.sleep(ts)
             if (id+1)%4==0:
-                get_proxies()
                 ts = random.randint(60,180)
                 print(f"please wait {ts}s .....")
                 time.sleep(ts)
@@ -170,7 +169,6 @@ if __name__ == "__main__":
         input("....")
 
         try:
-            get_proxies()
             start(config["script_settings"]["threading"])
             input("....")
             
